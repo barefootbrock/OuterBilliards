@@ -6,26 +6,32 @@ import utils
 from billiards import BilliardPoints, BilliardLines
 import time
 
-billiard = BilliardLines(cutLength=250)
-iterator = billiard.iterator(
-    iterations=100,
-    addPoints=False,
-    removeDuplicates=True
-)
-next(iterator)
-
-t = time.time()
-prevLines = []
-for i, lines in enumerate(iterator):
-    print(i, len(lines))
-    prevLines.append(lines)
-
-allLines = np.concatenate(prevLines)
-allLines = utils.mergeOverlapingSegments(allLines)
-print(time.time() - t)
-
-utils.plotLines(allLines)
+billiard = BilliardLines(cutLength=25)
+utils.plotLines(billiard.cuts)
 plt.show()
+
+# billiard = BilliardLines(cutLength=25)
+# iterator = billiard.iterator(
+#     iterations=200,
+#     addPoints=False,
+#     removeDuplicates=True,
+#     removeDuplicatesEvery=1
+# )
+
+# t = time.time()
+# prevLines = []
+# for i, lines in enumerate(iterator):
+#     print(i, len(lines))
+#     prevLines.append(lines)
+
+# allLines = np.concatenate(prevLines)
+# allLines = utils.mergeOverlapingSegments(allLines)
+# print(time.time() - t)
+
+# utils.plotLines(allLines)
+# plt.xlim(-2.5, -2)
+# plt.ylim(0, 0.5)
+# plt.show()
 
 
 
