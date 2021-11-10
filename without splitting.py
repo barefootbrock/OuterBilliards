@@ -7,7 +7,7 @@ from billiards import BilliardPoints, BilliardLines
 import time
 import imggenerator
 
-iterations = 1000
+iterations = 500
 cutLength = 25
 
 def pointInRegionClosest(self, points, region, includeEdges=True):
@@ -63,14 +63,6 @@ def pointInRegionFarthest(self, points, region, includeEdges=True):
     )
 
 
-# billiard = BilliardPoints(cutLength=cutLength, includePolygon=False)
-# iterator = billiard.iterator(
-#     iterations=iterations,
-#     addPoints=False
-# )
-# lines1 = imggenerator.run(iterator, keepAll=True)
-# lines1 = utils.mergeOverlapingSegments(lines1)
-
 
 BilliardLines.pointInRegion = pointInRegionFarthest
 
@@ -79,7 +71,13 @@ iterator = billiard.iterator(
     iterations=iterations,
     addPoints=False
 )
-lines2 = imggenerator.run(iterator, keepAll=True)
+points = imggenerator.run(iterator, keepAll=True)
+# r = linalg.norm(points, axis=1)
+# print(r.shape)
+
+# plt.hist(r, bins=25)
+# plt.show()
+
 # lines2 = utils.mergeOverlapingSegments(lines2)
 
 # utils.plotLines(lines1, color="r")

@@ -36,7 +36,7 @@ def onLine(line, point, extend1=False, extend2=False):
     dot1 = np.sum((point - P0) * (P1 - P0), axis=1) if not extend1 else 1
     dot2 = np.sum((point - P1) * (P0 - P1), axis=1) if not extend2 else 1
     
-    return (np.abs(cross) < eps) & (dot1 * dot2 >= 0)
+    return (np.abs(cross) < eps) & (dot1 * dot2 >= -eps)
 
 def midpoint(line):
     """
@@ -116,8 +116,8 @@ def intersect(line1, line2, sBounds=(-eps, 1+eps), tBounds=(-eps, 1+eps)):
     
     #Get intersection point
     point = P + U*s[:,np.newaxis]
-    samePoint = Q + V*t[:,np.newaxis] #Should be exactly the same
-    assert np.allclose(point[mask,...], samePoint[mask,...])
+    # samePoint = Q + V*t[:,np.newaxis] #Should be exactly the same
+    # assert np.allclose(point[mask,...], samePoint[mask,...])
 
     #Lines must intersect between end points (0 < s < 1)
     sMin, sMax = sBounds
@@ -132,9 +132,11 @@ def intersect(line1, line2, sBounds=(-eps, 1+eps), tBounds=(-eps, 1+eps)):
     else:
         return mask[0], point[0,...]
 
-def cutLines(lines, cuts, extend=(0, 1)):
+def cutLines(lines, cuts, extend=(0, 1), pointFilter=None):
     """
-    Cut a set of line segments with a set of cuts lines
+    Cut a set of line segments with a set of cuts line segments.
+    Cuts can optionally be extended toward either side.
+    Intersection points can, optionally, be filtered with pointFilter function.
     """
     lines = np.reshape(lines, (-1, 2, 2)).astype(np.float64)
     cuts = np.reshape(cuts, (-1, 2, 2)).astype(np.float64)
@@ -146,6 +148,9 @@ def cutLines(lines, cuts, extend=(0, 1)):
     for cut in cuts:
         wasCut, cutPts = intersect(lines, cut,
                                    sBounds=sBounds, tBounds=tBounds)
+        
+        if pointFilter is not None:
+            wasCut[wasCut] &= pointFilter(cutPts[wasCut,:])
 
         notCut = lines[~wasCut,...]
         segment1 = np.stack((lines[wasCut,0,:], cutPts[wasCut,:]), axis=1)
@@ -255,7 +260,17 @@ def mergeOverlapingSegments(lines):
         merge(lines[steep,:,::-1])[:,:,::-1] #swap x and y
     ))
     
-    
+def matrixAboutPoint(M2x2, center):
+    """Convert 2x2 matrix aroung a point to 3x3"""
+    M = np.eye(3, dtype='double')
+    center = np.asarray(center)
+    M[:2,:2] = M2x2
+    M[:2,2] = center - (M2x2 @ center[:,np.newaxis])[:,0]
+    return M
+
+def normalize(vecs):
+    """Scale vecs to have length of 1"""
+    return vecs / linalg.norm(vecs, axis=1)[:,np.newaxis]
 
 
 def plotPoints(points, size=0.4, color="r"):
@@ -321,3 +336,5 @@ if __name__ == "__main__":
     # plt.show()
 
     # print(onLine(lines, [-1, -1], extend2=True))
+
+    print(onLine([[0, 0], [1, 1]], [(0, 0), (1.00000001, 1.00000001)]))
