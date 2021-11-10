@@ -1,11 +1,17 @@
 import numpy as np
-from numpy import array, linalg
+from numpy import linalg
 from numpy import sin, cos, tan, pi, inf
 import utils
 import matplotlib.pyplot as plt
 
-
 class PointSet(np.ndarray):
+    @classmethod
+    def union(cls, pointSets, simplfy=True):
+        pts = np.concatenate(pointSets)
+        if simplfy:
+            pts = utils.removeDuplicatePts(pts)
+        return cls(pts)
+    
     def __new__(cls, points):
         arr = np.asarray(points, dtype='double')
 
@@ -19,7 +25,7 @@ class PointSet(np.ndarray):
     
     def __or__(self, other):
         """Union"""
-        pts = utils.removeDuplicatePts(np.concatenate((self, other)))
+        pts = np.concatenate((self, other))
         return type(self)(pts)
     
     def __and__(self, other):
@@ -62,7 +68,13 @@ class LineSet(np.ndarray):
         verts = PointSet(verts)
         P0, P1 = verts[:-1,:], verts[1:,:]
         lines = np.stack((P0, P1), axis=1)
-
+        return cls(lines)
+    
+    @classmethod
+    def union(cls, lineSets, simplfy=True):
+        lines = np.concatenate(lineSets)
+        if simplfy:
+            lines = utils.mergeOverlapingSegments(lines)
         return cls(lines)
     
     def __new__(cls, lines):
@@ -78,7 +90,8 @@ class LineSet(np.ndarray):
     
     def __or__(self, other):
         """Union"""
-        raise NotImplementedError()
+        lines = np.concatenate((self, other))
+        return type(self)(lines)
     
     def __and__(self, other):
         """Intersection"""
@@ -185,70 +198,8 @@ class Region:
     
     def plot(self, **kwargs):
         plt.fill(self.verts[:,0], self.verts[:,1], **kwargs)
-    
-    # def splitOnBoundry(self, lines):
-    #     """Split a set of line segments so that none cross the boundry"""
-    #     #Must filter split points so they are not outside region
-    #     return utils.cutLines(
-    #         lines,
-    #         self.edges,
-    #         extend=(-inf, inf),
-    #         pointFilter=lambda p: self.test(p, overrideInclude=True)
-    #     )
 
 
-class PiecewiseIsometry:
-    def __init__(self, mats, regions):
-        """Mats are matrices that define isometries"""
-        self.mats = mats
-        self.regions = regions
-   
-    def __call__(self, obj):
-        results = []
-        for mat, region in zip(self.mats, self.regions):
-            results.append(obj.within(region).transform(mat))
-        
-        return np.concatenate(results).view(type(obj))
-    
-    def singularity(self, simplify=True):
-        """Line segments on boundries of regions"""
-        lines = [r.boundryEdges() for r in self.regions]
-
-        lines = LineSet(np.concatenate(lines))
-        if simplify:
-            lines = lines.simplify()
-        
-        return lines
-    
-    # def splitOnBoundries(self, lines):
-    #     return reduce(lambda l, r: r.splitOnBoundry(l), self.regions, lines)
-
-
-class PolygonOuterBillards(PiecewiseIsometry):
-    def __init__(self, verts, singularityLen=25):
-        """Vertices must be convex and in order.
-        singularityLen is the length of the lines extending from vertices"""
-        isometries, regions = [], []
-        mirror = -np.eye(2)
-
-        dir = utils.normalize(verts - np.roll(verts, 1, axis=0))
-        endPts = dir * singularityLen + verts
-
-        for i, vert in enumerate(verts):
-            j = (i + 1) % len(verts)
-            isometries.append(utils.matrixAboutPoint(mirror, vert))
-            regions.append(Region(
-                [endPts[j,:], vert, endPts[i,:]],
-                (verts[j,:] + endPts[i,:]) / 2
-            ))
-            
-        super().__init__(isometries, regions)
-
-
-class RegularPolygonOuterBillards(PolygonOuterBillards):
-    def __init__(self, nSides=7, origin=(0, 0), radius=1, singularityLen=25):
-        vertices = utils.polygonVertices(nSides, origin, radius)
-        super().__init__(vertices, singularityLen)
 
 def iterate(obj, f, n, history=False):
     """f(f(...f(obj)...)) n times"""
@@ -262,74 +213,3 @@ def iterate(obj, f, n, history=False):
         return obj, hist
     else:
         return obj
-
-
-if __name__ == "__main__":
-    B = RegularPolygonOuterBillards(singularityLen=25)
-   
-    lines = B.singularity()
-
-    lines.plot()
-    plt.show()
-
-    # fig = plt.figure()
-    allLines = [lines]
-
-    for i in range(300):
-        lines = B(lines).simplify()
-        print(i, len(lines))
-        # lines.plot()
-        # plt.show()
-        allLines.append(lines)
-    
-    # plt.show()
-
-    # lines.plot()
-    LineSet(np.concatenate(allLines)).simplify().plot()
-    plt.show()
-
-
-    # A = np.array([0.5, 0.5*tan(2*pi/5)])
-    # B = np.array([0.0, 0.0])
-    # C = np.array([1.0, 0.0])
-    # D = np.array([cos(pi/5), sin(pi/5)])
-
-    # S0 = np.array([0.5, 0.5*tan(3*pi/10)])
-    # S1 = np.array([0.5, 0.5*tan(pi/10)])
-
-    # T0 = np.array([[+cos(4*pi/5), +sin(4*pi/5)],
-    #                [-sin(4*pi/5), +cos(4*pi/5)]])
-    # T0 = utils.matrixAboutPoint(T0, S0)
-
-    # T1 = np.array([[+cos(4*pi/5), -sin(4*pi/5)],
-    #                [+sin(4*pi/5), +cos(4*pi/5)]])
-    # T1 = utils.matrixAboutPoint(T1, S1)
-
-    # R0 = Region([A, B, D, A], S0, [True, False, True])
-    
-    # R1 = Region([B, C, D, B], S1, [True, True, True])
-
-    # iso = PiecewiseIsometry((T0, T1), (R0, R1))
-
-    # plt.axis("equal")
-
-    # lines = iso.singularity()
-    # lines.plot()
-    # plt.show()
-
-    # fig = plt.figure()
-
-    # allLines = [lines]
-
-    # for i in range(5000):
-    #     lines = iso(lines).simplify()
-    #     # print(i, len(lines), lines.totalLen())
-    #     # fig.clear()
-    #     # lines.plot()
-    #     # plt.pause(0.05)
-    #     allLines.append(lines)
-    
-    # plt.show()
-
-    # LineSet(np.concatenate(allLines)).simplify().plot()
-    # plt.show()
