@@ -196,9 +196,10 @@ class Region:
         """Boundry as a set of line segments"""
         return LineSet.connect(self.verts)
     
-    def plot(self, **kwargs):
-        plt.fill(self.verts[:,0], self.verts[:,1], **kwargs)
-
+    def plot(self, showEdges=False, alpha=0.3, **kwargs):
+        plt.fill(self.verts[:,0], self.verts[:,1], alpha=alpha, **kwargs)
+        if showEdges:
+            self.boundryEdges().plot(**kwargs)
 
 
 def iterate(obj, f, n, history=False):

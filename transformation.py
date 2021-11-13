@@ -2,6 +2,7 @@ import numpy as np
 from numpy import linalg
 from numpy import sin, cos, tan, pi, inf
 from functools import reduce
+from geometry import LineSet
 import utils
 
 class PiecewiseIsometry:
@@ -12,6 +13,15 @@ class PiecewiseIsometry:
    
     def __call__(self, obj):
         results = []
+        
+        #Optimization for line sets: only split once
+        if isinstance(obj, LineSet):
+            split = obj.cut(self.singularity().simplify(), extend=(-inf, inf))
+            for mat, region in zip(self.mats, self.regions):
+                results.append(split.within(region, cut=False).transform(mat))
+            
+            return LineSet.union(results, simplfy=False)
+                    
         for mat, region in zip(self.mats, self.regions):
             results.append(obj.within(region).transform(mat))
         
