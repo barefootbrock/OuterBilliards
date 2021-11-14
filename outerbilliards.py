@@ -1,17 +1,18 @@
 import numpy as np
 from numpy import linalg
 from numpy import sin, cos, tan, pi, inf
+from scipy.optimize import minimize_scalar
 import utils
 from geometry import PointSet, Region
 from transformation import PiecewiseIsometry
 
 class PolygonBillards(PiecewiseIsometry):
     @classmethod
-    def regularPolygon(cls, nSides=7, origin=(0, 0), radius=1, singularityLen=25):
+    def regularPolygon(cls, nSides=7, origin=(0, 0), radius=1, **kwargs):
         vertices = utils.polygonVertices(nSides, origin, radius)
-        return cls(vertices, singularityLen)
+        return cls(vertices, **kwargs)
 
-    def __init__(self, verts, singularityLen=25):
+    def __init__(self, verts, singularityLen=25, edgeMethod='both'):
         """Vertices must be convex and in order.
         singularityLen is the length of the lines extending from vertices"""
         verts = np.asarray(verts, dtype='double')
@@ -21,20 +22,34 @@ class PolygonBillards(PiecewiseIsometry):
         dir = utils.normalize(verts - np.roll(verts, 1, axis=0))
         endPts = dir * singularityLen + verts
 
+        if edgeMethod == 'both':
+            includeEdges = [True, True]
+        elif edgeMethod == 'farthest':
+            includeEdges = [True, False]
+        elif edgeMethod == 'neither':
+            includeEdges = [False, False]
+        else:
+            raise ValueError("Invalid edge method!")
+
         for i, vert in enumerate(verts):
             j = (i + 1) % len(verts)
             isometries.append(utils.matrixAboutPoint(mirror, vert))
             regions.append(Region(
                 [endPts[j,:], vert, endPts[i,:]],
                 (verts[j,:] + endPts[i,:]) / 2,
-                [True, False]
+                includeEdges
             ))
+        
+        self.verts = verts
             
         super().__init__(isometries, regions)
+    
+    def plot(self, **kwargs):
+        Region(self.verts, (0,0)).plot(**kwargs)
 
 
 class SmoothBilliards:
-    def __init__(self, r, v, a):
+    def __init__(self, r, v=None, a=None):
         """
         Smooth paramitized curve(<f(t), g(t)>),
          it's derivative (<f'(t), g'(t)>),
@@ -47,6 +62,8 @@ class SmoothBilliards:
         self.r = lambda t: toNpVec(r(t))
         self.v = lambda t: toNpVec(v(t))
         self.a = lambda t: toNpVec(a(t))
+
+        self.center = np.mean(self.r(np.linspace(0, 1)), 0)
     
     def __call__(self, points):
         vert = self.tangentPoint(points)
@@ -62,30 +79,44 @@ class SmoothBilliards:
         """
         r, v, a = self.r, self.v, self.a
 
-        step = 0.5
-        t = 0
-
-        for i in range(8):
-            t += step * np.sign(np.cross(v(t), r(t) - P, axis=1))
-            t %= 1
-            step *= 2 / 3
-            # print(t)
+        def err(t, point):
+            #Error function to minimize
+            return np.cross(
+                self.center - point,
+                utils.normalize(self.r(t) - P)[0,:]
+            )
         
-        lastT = 0
-
-        for i in range(5):
-            #Modification on Newton's method
-            # -abs of slope is used so zeros with posative slope are repelled
-            # and only zeros with negative slope are found
-            lastT = t
-            slope = -np.abs(np.cross(a(t), r(t) - P, axis=1))
-            t = t - np.cross(v(t), r(t) - P, axis=1) / slope
-            t %= 1
-            # print(t)
+        tVals = []
+        for point in PointSet(P):
+            t = minimize_scalar(err, args=(point,)).x % 1
+            tVals.append(t)
         
-        assert np.sum(v(t) * (r(t) - P), axis=1) > 0, "Wrong point found"
-        assert np.max(np.abs(t - lastT)) < utils.eps, "Point did not converge"
-        assert np.cross(v(t), r(t) - P, axis=1) < utils.eps, "Bad point found"
+        t = np.asarray(tVals, dtype='double')
+
+        # step = 0.5
+        # t = 0
+
+        # for i in range(8):
+        #     t += step * np.sign(np.cross(v(t), r(t) - P, axis=1))
+        #     t %= 1
+        #     step *= 2 / 3
+        #     # print(t)
+        
+        # lastT = 0
+
+        # for i in range(5):
+        #     #Modification on Newton's method
+        #     # -abs of slope is used so zeros with posative slope are repelled
+        #     # and only zeros with negative slope are found
+        #     lastT = t
+        #     slope = -np.abs(np.cross(a(t), r(t) - P, axis=1))
+        #     t = t - np.cross(v(t), r(t) - P, axis=1) / slope
+        #     t %= 1
+        #     # print(t)
+        
+        # assert np.sum(v(t) * (r(t) - P), axis=1) > 0, "Wrong point found"
+        # assert np.max(np.abs(t - lastT)) < utils.eps, "Point did not converge"
+        # assert np.cross(v(t), r(t) - P, axis=1) < utils.eps, "Bad point found"
 
         return self.r(t)
 

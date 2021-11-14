@@ -1,6 +1,7 @@
 import numpy as np
 from numpy import linalg
 from numpy import sin, cos, tan, pi, inf
+from numpy.core.function_base import linspace
 import utils
 import matplotlib.pyplot as plt
 
@@ -12,7 +13,9 @@ class PointSet(np.ndarray):
             pts = utils.removeDuplicatePts(pts)
         return cls(pts)
     
-    def __new__(cls, points):
+    def __new__(cls, points=None):
+        if points is None:
+            points = np.zeros((0, 2), dtype='double')
         arr = np.asarray(points, dtype='double')
 
         if arr.shape == (2,): #Single point
@@ -142,6 +145,20 @@ class LineSet(np.ndarray):
 
     def totalLen(self):
         return np.sum(linalg.norm(self[:,0,:] - self[:,1,:], axis=1))
+    
+    def pointSpread(self, nPoints=100):
+        """Evenly distribute points along lines"""
+        points = PointSet()
+        totalLen = self.totalLen()
+
+        for P0, P1 in self:
+            relLen = linalg.norm(P1 - P0) / totalLen
+            t = np.linspace(0, 1, int(nPoints * relLen))
+            pts = t[:,np.newaxis] * (P1 - P0) + P0
+            
+            points = points | pts
+        
+        return points
     
     def plot(self, *args, **kwargs):
         utils.plotLines(self, *args, **kwargs)
