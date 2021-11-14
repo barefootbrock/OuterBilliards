@@ -21,5 +21,6 @@ for i in range(iterations):
     allLines.append(lines)
     print("Iteration", i)
 
+B.plot(color="black")
 LineSet.union(allLines).plot()
 plt.show()

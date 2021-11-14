@@ -17,8 +17,8 @@ def ovalBillardAnim():
     pts = [point[0,:]]
 
     B.plot(showEdges=True, color="black")
-    point.plot(size=25)
-    plt.pause(5)
+    point.plot(size=100)
+    plt.pause(10)
 
     for i in range(6):
         point = B(point)
@@ -27,7 +27,7 @@ def ovalBillardAnim():
         fig.clear()
         B.plot(showEdges=True, color="black")
         lines = LineSet.connect(pts)
-        lines.plot(showPoints=True, pointSize=25)
+        lines.plot(showPoints=True, pointSize=100, size=1)
         plt.xlim(-5, 5)
         plt.ylim(-3, 3)
         plt.pause(2)
@@ -40,14 +40,13 @@ def pentagonSinglePointAnim():
     fig = plt.figure()
     plt.xlim(-2, 2)
     plt.ylim(-2, 2)
-    # plt.axes("equal")
 
     point = PointSet([0.9, 1.2])
     pts = [point[0,:]]
 
     B.plot(showEdges=True, color="black")
-    point.plot(size=25)
-    plt.pause(5)
+    point.plot(size=100)
+    plt.pause(10)
 
     for i in range(6):
         point = B(point)
@@ -56,11 +55,82 @@ def pentagonSinglePointAnim():
         fig.clear()
         B.plot(showEdges=True, color="black")
         lines = LineSet.connect(pts)
-        lines.plot(showPoints=True, pointSize=25)
+        lines.plot(showPoints=True, pointSize=100, size=1)
         plt.xlim(-2, 2)
         plt.ylim(-2, 2)
         plt.pause(2)
     
+    plt.show()
+
+def piecewiseIsometryVisual():
+    B = PolygonBillards.regularPolygon(nSides=5)
+
+    fig = plt.figure()
+    plt.xlim(-2, 2)
+    plt.ylim(-2, 2)
+
+    B.plot(color="black")
+    B.singularity().plot(size=1)
+    B.regions[0].plot()
+    plt.show()
+
+
+def dualValuedVisual():
+    B = PolygonBillards.regularPolygon(nSides=5)
+
+    fig = plt.figure()
+    plt.xlim(-3, 3)
+    plt.ylim(-3, 3)
+
+    pts = PointSet([
+        2.5 * cos(pi/5),
+        1 - 2.5 * sin(pi/5)
+    ])
+    pts = pts | B(pts)
+
+    B.plot(showEdges=True, color="black")
+    B.singularity().plot(size=1)
+    pts.plot(size=100)
+    plt.show()
+
+def pentagonBackgroundExample(iterations):
+    B = PolygonBillards.regularPolygon(nSides=5, singularityLen=10)
+   
+    lines = B.singularity().simplify()
+    points = lines.pointSpread(700)
+
+
+    for i in range(iterations):
+        points = B(points).simplify()
+
+    plt.xlim(-2.5, 2.5)
+    plt.ylim(-2.8, 2.2)
+    B.plot(showEdges=True, color="black")
+    points.plot(size=1)
+    points.plot()
+    plt.show()
+
+def irregularPolygonExample():
+    B = PolygonBillards([
+        (0, 2),
+        (-2, 0.9),
+        (-2, 0),
+        (-1.5, -1),
+        (1.5, -1),
+        (2, 0)
+    ], singularityLen=25)
+
+    lines = B.singularity().simplify()
+
+    allLines = [lines]
+
+    for i in range(200):
+        lines = B(lines).simplify()
+        allLines.append(lines)
+        print("Iteration", i)
+
+    B.plot(color="black")
+    LineSet.union(allLines).plot()
     plt.show()
 
 def heptagonMethod1():
@@ -78,4 +148,11 @@ def heptagonMethod1():
 if __name__ == "__main__":
     # ovalBillardAnim()
     # pentagonSinglePointAnim()
-    heptagonMethod1()
+    # piecewiseIsometryVisual()
+    # dualValuedVisual()
+    # pentagonBackgroundExample(0)
+    # pentagonBackgroundExample(1)
+    # pentagonBackgroundExample(10)
+    # pentagonBackgroundExample(100)
+    irregularPolygonExample()
+    # heptagonMethod1()
