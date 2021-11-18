@@ -1,26 +1,17 @@
 from outerbilliards import *
 from geometry import *
 import matplotlib.pyplot as plt
+from algorithms import usingLines
 
-iterations = 250
-nSides = 7
-singularityLen = 50
+B = PolygonBillards.regularPolygon(nSides=7)
 
-B = PolygonBillards.regularPolygon(
-    nSides=nSides,
-    singularityLen=singularityLen,
-    edgeMethod='farthest'
+lines = usingLines(
+    1000,
+    sides=7,
+    splitMode='farthest',
+    useSymmetry=True
 )
 
-lines = B.singularity().simplify()
-
-allLines = [lines]
-
-for i in range(iterations):
-    lines = B(lines).simplify()
-    allLines.append(lines)
-    print("Iteration", i)
-
+lines.plot()
 B.plot(color="black")
-LineSet.union(allLines).plot()
 plt.show()
