@@ -1,3 +1,4 @@
+from numpy import sign
 from outerbilliards import *
 from geometry import *
 import matplotlib.pyplot as plt
@@ -145,6 +146,59 @@ def heptagonMethod1():
     points.plot()
     plt.show()
 
+def lineSplitting():
+    B = PolygonBillards.regularPolygon(nSides=5, singularityLen=4)
+   
+    B.plot(color="black")
+    B.singularity().plot(size=1)
+    line = LineSet([[3, 1], [0, 3]])
+    line.plot(color="r", size=3)
+    plt.show()
+
+    B.plot(color="black")
+    B.singularity().plot(size=1)
+    line = B(line)
+    line.plot(color="r", size=3)
+    plt.show()
+
+
+def linesVsPoints():
+    B = PolygonBillards.regularPolygon()
+   
+    lines = B.singularity().simplify()
+    points = lines.pointSpread(1400)
+    
+    allPoints = []
+    allLines = []
+    pointMem = []
+    lineMem = []
+
+    for i in range(100):
+        points = B(points).simplify()
+        lines = B(lines).simplify()
+        allPoints.append(points)
+        allLines.append(lines)
+        pointMem.append(len(points))
+        lineMem.append(len(lines) * 2)
+    
+    points = PointSet.union(allPoints)
+    lines = LineSet.union(allLines)
+
+    plt.xlim(5.6, 6)
+    plt.ylim(2.8, 3.2)    
+    points.plot(size=10)
+    plt.show()
+
+    plt.xlim(5.6, 6)
+    plt.ylim(2.8, 3.2)
+    points.plot(size=10)
+    lines.plot(size=1)
+    plt.show()
+
+    plt.plot(pointMem)
+    plt.plot(lineMem)
+    plt.show()
+
 if __name__ == "__main__":
     # ovalBillardAnim()
     # pentagonSinglePointAnim()
@@ -154,5 +208,7 @@ if __name__ == "__main__":
     # pentagonBackgroundExample(1)
     # pentagonBackgroundExample(10)
     # pentagonBackgroundExample(100)
-    irregularPolygonExample()
+    # irregularPolygonExample()
     # heptagonMethod1()
+    # lineSplitting()
+    linesVsPoints()
