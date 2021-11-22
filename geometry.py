@@ -4,6 +4,7 @@ from numpy import sin, cos, tan, pi, inf
 from numpy.core.function_base import linspace
 import utils
 import matplotlib.pyplot as plt
+from params import params
 
 class PointSet(np.ndarray):
     @classmethod
@@ -15,8 +16,8 @@ class PointSet(np.ndarray):
     
     def __new__(cls, points=None):
         if points is None:
-            points = np.zeros((0, 2), dtype='double')
-        arr = np.asarray(points, dtype='double')
+            points = np.zeros((0, 2), dtype=params.dtype)
+        arr = np.asarray(points, dtype=params.dtype)
 
         if arr.shape == (2,): #Single point
             arr = arr.reshape((1, 2))
@@ -46,7 +47,7 @@ class PointSet(np.ndarray):
     
     def transform(self, mat):
         """Apply matrix (2x2 or 3x3)"""
-        mat = np.asarray(mat, 'double')
+        mat = np.asarray(mat, params.dtype)
         if mat.shape == (2, 2):
             pts = (mat @ self.T).T
             return type(self)(pts)
@@ -81,7 +82,7 @@ class LineSet(np.ndarray):
         return cls(lines)
     
     def __new__(cls, lines):
-        arr = np.asarray(lines, dtype='double')
+        arr = np.asarray(lines, dtype=params.dtype)
 
         if arr.shape == (2, 2): #Single line
             arr = arr.reshape((1, 2, 2))
@@ -124,7 +125,7 @@ class LineSet(np.ndarray):
     
     def transform(self, mat):
         """Apply matrix (2x2 or 3x3)"""
-        mat = np.asarray(mat, 'double')
+        mat = np.asarray(mat, params.dtype)
         if mat.shape == (2, 2):
             res = self.copy()
             res[:,0,:] = (mat @ self[:,0,:].T).T
@@ -174,7 +175,7 @@ class Region:
         Each edge can, optionally, be included in the region.
         """
         self.verts = PointSet(vertices)
-        self.interiorPoint = np.asarray(interiorPoint, dtype='double')
+        self.interiorPoint = np.asarray(interiorPoint, dtype=params.dtype)
 
         if np.isscalar(includeEdges):
             self.includeEdges = np.ones(len(self.verts) - 1, 'bool')

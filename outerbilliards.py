@@ -5,6 +5,7 @@ from scipy.optimize import minimize_scalar
 import utils
 from geometry import PointSet, Region
 from transformation import PiecewiseIsometry
+from params import params
 
 class PolygonBillards(PiecewiseIsometry):
     @classmethod
@@ -15,7 +16,7 @@ class PolygonBillards(PiecewiseIsometry):
     def __init__(self, verts, singularityLen=25, edgeMethod='both'):
         """Vertices must be convex and in order.
         singularityLen is the length of the lines extending from vertices"""
-        verts = np.asarray(verts, dtype='double')
+        verts = np.asarray(verts, dtype=params.dtype)
         isometries, regions = [], []
         mirror = -np.eye(2)
         
@@ -56,7 +57,7 @@ class SmoothBilliards:
          and second derivative
         """
         def toNpVec(arr):
-            arr = np.asarray(arr, dtype='double')
+            arr = np.asarray(arr, dtype=params.dtype)
             return arr.reshape((2, -1)).T
         
         self.r = lambda t: toNpVec(r(t))
@@ -91,7 +92,7 @@ class SmoothBilliards:
             t = minimize_scalar(err, args=(point,)).x % 1
             tVals.append(t)
         
-        t = np.asarray(tVals, dtype='double')
+        t = np.asarray(tVals, dtype=params.dtype)
 
         # step = 0.5
         # t = 0

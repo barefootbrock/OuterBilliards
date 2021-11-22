@@ -77,6 +77,7 @@ def usingLines(iterations, sides=7, singularityLen=25, keepPrev=True,
             #after first iteration ignore points on singularities
             for r in isometry.regions:
                 r.includeEdges[:] = False
+            simplify = False
         
         lines = isometry(lines)
 
@@ -85,7 +86,7 @@ def usingLines(iterations, sides=7, singularityLen=25, keepPrev=True,
         if keepPrev:
             allLines.append(lines)
         if verbose:
-            print("%i: %i lines" % (i, len(lines)))
+            print("%i: %i lines %.3f" % (i, len(lines), lines.totalLen()))
 
     if keepPrev:
         lines = LineSet.union(allLines)
@@ -109,12 +110,7 @@ def usingLines(iterations, sides=7, singularityLen=25, keepPrev=True,
 
 
 if __name__ == "__main__":
-    usingPoints(100).plot(size=10)
-
-    usingLines(
-        100,
-        sides=7,
-        splitMode='farthest',
-        useSymmetry=True
-    ).plot(color="b")
+    usingPoints(6, singularityLen=5, keepPrev=False).plot(size=10)
+    usingLines(6, singularityLen=5, keepPrev=False).plot(size=1)
+    PolygonBillards.regularPolygon().plot()
     plt.show()

@@ -2,8 +2,10 @@ import numpy as np
 from numpy import linalg
 from numpy import sin, cos, tan, pi, inf
 import matplotlib.pyplot as plt
+from params import params
 
-eps = 1e-9
+eps = params.eps
+
 
 def sameSide(line, point, refPoint):
     """
@@ -262,7 +264,7 @@ def mergeOverlapingSegments(lines):
     
 def matrixAboutPoint(M2x2, center):
     """Convert 2x2 matrix aroung a point to 3x3"""
-    M = np.eye(3, dtype='double')
+    M = np.eye(3, dtype=params.dtype)
     center = np.asarray(center)
     M[:2,:2] = M2x2
     M[:2,2] = center - (M2x2 @ center[:,np.newaxis])[:,0]
