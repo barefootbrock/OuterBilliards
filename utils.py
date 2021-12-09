@@ -2,7 +2,9 @@ import numpy as np
 from numpy import linalg
 from numpy import sin, cos, tan, pi, inf
 import matplotlib.pyplot as plt
+from numpy.linalg.linalg import norm
 from params import params
+from functools import cmp_to_key
 
 eps = params.eps
 
@@ -13,32 +15,37 @@ def sameSide(line, point, refPoint):
     Returns 1 if same side, -1 if other side, and 0 if on the line
     line has shape (_, 2, 2)
     point & refPoint have shape (_, 2)
+    eps is the minimum distance to the line to be on the line
     """
     line = np.reshape(line, (-1, 2, 2)).astype(np.float64)
     point = np.reshape(point, (-1, 2)).astype(np.float64)
     refPoint = np.reshape(refPoint, (-1, 2)).astype(np.float64)
     
     P0, P1 = line[...,0,:], line[...,1,:]
-    cross1 = np.cross(point - P0, P1 - P0)
-    cross2 = np.cross(refPoint - P0, P1 - P0)
-    cross1[np.abs(cross1) < eps] = 0
+    direction = P1 - P0
+    cross1 = np.cross(point - P0, direction)
+    cross2 = np.cross(refPoint - P0, direction)
+    cross1[np.abs(cross1) * linalg.norm(direction) < eps] = 0
     return np.sign(cross1) * np.sign(cross2)
 
 def onLine(line, point, extend1=False, extend2=False):
     """
     Test if point is on the line segment
     extend1 extends line past first point (same with extend2)
+    eps is the minimum distance to the line
     """
     line = np.reshape(line, (-1, 2, 2)).astype(np.float64)
     point = np.reshape(point, (-1, 2)).astype(np.float64)
     
     P0, P1 = line[...,0,:], line[...,1,:]
+    direction = P1 - P0
     cross = np.cross(point - P0, P1 - P0)
     
     dot1 = np.sum((point - P0) * (P1 - P0), axis=1) if not extend1 else 1
     dot2 = np.sum((point - P1) * (P0 - P1), axis=1) if not extend2 else 1
     
-    return (np.abs(cross) < eps) & (dot1 * dot2 >= -eps)
+    return ((np.abs(cross) < eps * linalg.norm(direction))
+          & (dot1 * dot2 > -eps * linalg.norm(direction)**2))
 
 def midpoint(line):
     """
@@ -60,6 +67,7 @@ def parallel(line1, line2):
     Test if lines are parallel
     line1 & line2 have shape (_, 2, 2)
     result has shape (_,)
+    eps is roughly the max angle between lines
     """
     line1 = np.reshape(line1, (-1, 2, 2)).astype(np.float64)
     line2 = np.reshape(line2, (-1, 2, 2)).astype(np.float64)
@@ -68,7 +76,7 @@ def parallel(line1, line2):
     # <p0,p1> + <u0,u1>s, <q0,q1> + <v0,v1>t
     P, Q = line1[...,0,:], line2[...,0,:]
     U, V = line1[...,1,:] - P, line2[...,1,:] - Q
-    return np.abs(np.cross(U, V)) < eps
+    return np.abs(np.cross(U, V)) < eps * linalg.norm(U) * linalg.norm(V)
 
 def intersect(line1, line2, sBounds=(-eps, 1+eps), tBounds=(-eps, 1+eps)):
     """
@@ -182,9 +190,29 @@ def removeDuplicatePts(points):
     """
     Remove duplicate points
     """
+    points = np.asarray(points, dtype=params.dtype)
     decimals = -int(np.log10(eps))
     _, idx = np.unique(np.round(points, decimals), axis=0, return_index=True)
     return points[idx,:]
+
+def removeDuplicatePts2(points):
+    """
+    Remove duplicate points using improved (?) algorithm
+    """
+    def cmpFunc(A, B):
+        if (A[0] - B[0])**2 + (A[1] - B[1])**2 < eps**2:
+            return 0
+        if A[0] != B[0]:
+            return A[0] - B[0]
+        return A[1] - B[1]
+
+    points = sorted(points, key=cmp_to_key(cmpFunc))
+    unique = [points[0]]
+    for P in points[1:]:
+        if cmpFunc(P, unique[-1]) != 0:
+            unique.append(P)
+
+    return np.asarray(unique, dtype=params.dtype)
 
 def mergeOverlapingSegments(lines):
     """
@@ -327,8 +355,8 @@ if __name__ == "__main__":
 
     # print(lines)
 
-    lines = [[[0, 0], [2, 2]],
-             [[3, 3], [1, 1]]]
+    # lines = [[[0, 0], [2, 2]],
+    #          [[3, 3], [1, 1]]]
     # merge = mergeOverlapingSegments(lines)
     # print(merge)
 
@@ -339,4 +367,9 @@ if __name__ == "__main__":
 
     # print(onLine(lines, [-1, -1], extend2=True))
 
-    print(onLine([[0, 0], [1, 1]], [(0, 0), (1.00000001, 1.00000001)]))
+    # print(onLine([[0, 0], [1, 1]], [(0, 0), (1.00000001, 1.00000001)]))
+
+    print(removeDuplicatePts2([
+        [0.4999, 0.6249],
+        [0.5001, 0.6051]
+    ]))

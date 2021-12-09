@@ -110,7 +110,7 @@ def usingLines(iterations, sides=7, singularityLen=25, keepPrev=True,
 
 
 if __name__ == "__main__":
-    usingPoints(300, seedPoints=7, singularityLen=5, keepPrev=False).plot(size=2)
-    # usingLines(6, singularityLen=5, keepPrev=False).plot(size=1)
+    # usingPoints(300, seedPoints=7, singularityLen=5, keepPrev=False).plot(size=2)
+    usingLines(100, singularityLen=50000, keepPrev=False).plot()
     PolygonBillards.regularPolygon().plot()
     plt.show()
