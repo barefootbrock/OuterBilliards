@@ -63,7 +63,7 @@ class PointSet(np.ndarray):
         return type(self)(pts)
 
     def plot(self, *args, **kwargs):
-        utils.plotPoints(self, *args, **kwargs)
+        return utils.plotPoints(self, *args, **kwargs)
 
 
 class LineSet(np.ndarray):
@@ -81,8 +81,11 @@ class LineSet(np.ndarray):
             lines = utils.mergeOverlapingSegments(lines)
         return cls(lines)
     
-    def __new__(cls, lines):
-        arr = np.asarray(lines, dtype=params.dtype)
+    def __new__(cls, lines=None):
+        if lines is None:
+            arr = np.zeros((0, 2, 2))
+        else:
+            arr = np.asarray(lines, dtype=params.dtype)
 
         if arr.shape == (2, 2): #Single line
             arr = arr.reshape((1, 2, 2))
@@ -162,7 +165,7 @@ class LineSet(np.ndarray):
         return points
     
     def plot(self, *args, **kwargs):
-        utils.plotLines(self, *args, **kwargs)
+        return utils.plotLines(self, *args, **kwargs)
 
 
 class Region:

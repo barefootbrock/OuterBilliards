@@ -275,15 +275,18 @@ def normalize(vecs):
     return vecs / linalg.norm(vecs, axis=1)[:,np.newaxis]
 
 
-def plotPoints(points, size=0.4, color="r"):
+def plotPoints(points, size=0.4, color="r", plot=plt, setAspect=True):
     """
     Plot a set of points with plt
     plt.show or plt.pause must be called to see the plot
     """
-    plt.scatter(points[...,0], points[...,1], s=size, c=color, marker=".")
-    plt.gca().set_aspect('equal', adjustable='box')
+    if setAspect:
+        plot.gca().set_aspect('equal', adjustable='box')
 
-def plotLines(lines, size=0.4, color="b", showPoints=False, pointSize=None, pointColor="r"):
+    return plot.scatter(points[...,0], points[...,1], s=size, c=color, marker=".")
+
+def plotLines(lines, size=0.4, color="b", showPoints=False, pointSize=None, pointColor="r",
+              plot=plt, setAspect=True):
     """
     Plot a set of line segments (and optionally theit end points) with plt
     plt.show or plt.pause must be called to see the plot
@@ -296,15 +299,16 @@ def plotLines(lines, size=0.4, color="b", showPoints=False, pointSize=None, poin
     coords[1::3,:] = lines[:,1,:]
     coords[2::3,:] = np.nan
 
-    plt.plot(coords[:,0], coords[:,1], color, linewidth=size)
+    if setAspect:
+        plot.gca().set_aspect('equal', adjustable='box')
 
     if showPoints:
         if pointSize == None: pointSize = 10 * size**2
 
-        plt.scatter(lines[...,0,0], lines[...,0,1], s=pointSize, c=pointColor, marker=".")
-        plt.scatter(lines[...,1,0], lines[...,1,1], s=pointSize, c=pointColor, marker=".")
+        plot.scatter(lines[...,0,0], lines[...,0,1], s=pointSize, c=pointColor, marker=".")
+        plot.scatter(lines[...,1,0], lines[...,1,1], s=pointSize, c=pointColor, marker=".")
     
-    plt.gca().set_aspect('equal', adjustable='box')
+    return plot.plot(coords[:,0], coords[:,1], color, linewidth=size)
 
 if __name__ == "__main__":
     # lines = [[[0, 1], [1, 0]],
