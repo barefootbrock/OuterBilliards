@@ -302,6 +302,23 @@ def normalize(vecs):
     """Scale vecs to have length of 1"""
     return vecs / linalg.norm(vecs, axis=1)[:,np.newaxis]
 
+def applySymmetry(obj, rotational=None):
+    if rotational is None:
+        return obj
+    
+    M = [
+        [cos(2*pi/rotational), -sin(2*pi/rotational)],
+        [sin(2*pi/rotational),  cos(2*pi/rotational)]
+    ]
+
+    currObj = obj
+    transformed = []
+    for i in range(rotational - 1):
+        currObj = currObj.transform(M)
+        transformed.append(currObj)
+    
+    return obj.union(*transformed)
+
 
 def plotPoints(points, size=0.4, color="r", plot=plt, setAspect=True):
     """
@@ -337,6 +354,9 @@ def plotLines(lines, size=0.4, color="b", showPoints=False, pointSize=None, poin
         plot.scatter(lines[...,1,0], lines[...,1,1], s=pointSize, c=pointColor, marker=".")
     
     return plot.plot(coords[:,0], coords[:,1], color, linewidth=size)
+
+def showPlot(plot=plt):
+    plot.show()
 
 if __name__ == "__main__":
     # lines = [[[0, 1], [1, 0]],

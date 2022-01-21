@@ -7,7 +7,11 @@ from geometry import PointSet, Region
 from transformation import PiecewiseIsometry
 from params import params
 
-class PolygonBillards(PiecewiseIsometry):
+class PolygonBilliards(PiecewiseIsometry):
+    REFLECT_BOTH = 'both'
+    REFLECT_FAR = 'farthest'
+    REFLECT_NONE = 'neither'
+
     @classmethod
     def regularPolygon(cls, nSides=7, origin=(0, 0), radius=1, **kwargs):
         vertices = utils.polygonVertices(nSides, origin, radius)
@@ -44,6 +48,19 @@ class PolygonBillards(PiecewiseIsometry):
         self.verts = verts
             
         super().__init__(isometries, regions)
+    
+    def setEdgeMethod(self, edgeMethod):
+        if edgeMethod == 'both':
+            includeEdges = [True, True]
+        elif edgeMethod == 'farthest':
+            includeEdges = [True, False]
+        elif edgeMethod == 'neither':
+            includeEdges = [False, False]
+        else:
+            raise ValueError("Invalid edge method!")
+        
+        for region in self.regions:
+            region.includeEdges = includeEdges
     
     def plot(self, **kwargs):
         Region(self.verts, (0,0)).plot(**kwargs)

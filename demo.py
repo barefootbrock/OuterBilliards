@@ -3,7 +3,7 @@ from geometry import *
 import matplotlib.pyplot as plt
 from algorithms import usingLines
 
-B = PolygonBillards.regularPolygon(nSides=7)
+B = PolygonBilliards.regularPolygon(nSides=7)
 
 lines = usingLines(
     1000,

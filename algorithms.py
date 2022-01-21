@@ -7,7 +7,7 @@ import time
 
 def usingPoints(iterations, sides=7, singularityLen=25, seedPoints=1000,
                 keepPrev=True, simplify=True, verbose=True):
-    isometry = PolygonBillards.regularPolygon(
+    isometry = PolygonBilliards.regularPolygon(
         nSides=sides,
         singularityLen=singularityLen
     )
@@ -50,11 +50,11 @@ def usingLines(iterations, sides=7, singularityLen=25, keepPrev=True,
     """
 
     if splitMode == 'split':
-        isometry = PolygonBillards.regularPolygon(
+        isometry = PolygonBilliards.regularPolygon(
             nSides=sides,
             singularityLen=singularityLen)
     elif splitMode in ('farthest', 'remove'):
-        isometry = PolygonBillards.regularPolygon(
+        isometry = PolygonBilliards.regularPolygon(
             nSides=sides,
             singularityLen=singularityLen,
             edgeMethod="farthest"
@@ -112,5 +112,5 @@ def usingLines(iterations, sides=7, singularityLen=25, keepPrev=True,
 if __name__ == "__main__":
     usingPoints(200, seedPoints=1400, singularityLen=25).plot()
     usingLines(200, singularityLen=25).plot()
-    PolygonBillards.regularPolygon().plot()
+    PolygonBilliards.regularPolygon().plot()
     plt.show()

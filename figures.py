@@ -37,7 +37,7 @@ def ovalBillardAnim():
     plt.show()
 
 def pentagonSinglePointAnim():
-    B = PolygonBillards.regularPolygon(nSides=5)
+    B = PolygonBilliards.regularPolygon(nSides=5)
 
     fig = plt.figure()
     plt.xlim(-2, 2)
@@ -65,7 +65,7 @@ def pentagonSinglePointAnim():
     plt.show()
 
 def piecewiseIsometryVisual():
-    B = PolygonBillards.regularPolygon(nSides=5)
+    B = PolygonBilliards.regularPolygon(nSides=5)
 
     fig = plt.figure()
     plt.xlim(-2, 2)
@@ -77,7 +77,7 @@ def piecewiseIsometryVisual():
     plt.show()
 
 def dualValuedVisual():
-    B = PolygonBillards.regularPolygon(nSides=5)
+    B = PolygonBilliards.regularPolygon(nSides=5)
 
     fig = plt.figure()
     plt.xlim(-3, 3)
@@ -95,7 +95,7 @@ def dualValuedVisual():
     plt.show()
 
 def pentagonBackgroundExample(iterations):
-    B = PolygonBillards.regularPolygon(nSides=5, singularityLen=10)
+    B = PolygonBilliards.regularPolygon(nSides=5, singularityLen=10)
    
     lines = B.singularity().simplify()
     points = lines.pointSpread(700)
@@ -116,7 +116,7 @@ def pentagonBackgroundExample(iterations):
     plt.show()
 
 def irregularPolygonExample():
-    B = PolygonBillards([
+    B = PolygonBilliards([
         (0, 2),
         (-2, 0.9),
         (-2, 0),
@@ -140,7 +140,7 @@ def irregularPolygonExample():
 
 def heptagonMethod1(iterations):
     start = time.time()
-    B = PolygonBillards.regularPolygon(singularityLen=25)
+    B = PolygonBilliards.regularPolygon(singularityLen=25)
    
     lines = B.singularity().simplify()
     points = lines.pointSpread(700)
@@ -164,7 +164,7 @@ def heptagonMethod1(iterations):
     plt.show()
 
 def lineSplitting():
-    B = PolygonBillards.regularPolygon(nSides=5, singularityLen=4)
+    B = PolygonBilliards.regularPolygon(nSides=5, singularityLen=4)
    
     B.plot(color="black")
     B.singularity().plot(size=1)
@@ -179,7 +179,7 @@ def lineSplitting():
     plt.show()
 
 def linesVsPoints(iterations):
-    B = PolygonBillards.regularPolygon()
+    B = PolygonBilliards.regularPolygon()
    
     lines = B.singularity().simplify()
     points = lines.pointSpread(700)
@@ -216,7 +216,7 @@ def linesVsPoints(iterations):
     plt.show()
     
 def redundantLines():
-    B = PolygonBillards.regularPolygon(nSides=5, singularityLen=4)
+    B = PolygonBilliards.regularPolygon(nSides=5, singularityLen=4)
    
     plt.xlim(-0.2,2.3)
     plt.ylim(0.2,2.27)
