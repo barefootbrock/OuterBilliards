@@ -8,7 +8,7 @@ B = PolygonBillards.regularPolygon(nSides=7)
 lines = usingLines(
     1000,
     sides=7,
-    splitMode='farthest',
+    splitMode='remove',
     useSymmetry=True
 )
 

@@ -2,6 +2,7 @@ from numpy import sign
 from outerbilliards import *
 from geometry import *
 import matplotlib.pyplot as plt
+import time
 
 #code for all the figures in the presentation
 
@@ -75,7 +76,6 @@ def piecewiseIsometryVisual():
     B.regions[0].plot()
     plt.show()
 
-
 def dualValuedVisual():
     B = PolygonBillards.regularPolygon(nSides=5)
 
@@ -99,16 +99,20 @@ def pentagonBackgroundExample(iterations):
    
     lines = B.singularity().simplify()
     points = lines.pointSpread(700)
-
+    prev = []
 
     for i in range(iterations):
+        prev.append(points)
         points = B(points).simplify()
 
     plt.xlim(-2.5, 2.5)
     plt.ylim(-2.8, 2.2)
     B.plot(showEdges=True, color="black")
-    points.plot(size=1)
-    points.plot()
+    points.plot(size=5)
+
+    if iterations > 0:
+        PointSet.union(*prev).plot(size=1, color="red")
+    
     plt.show()
 
 def irregularPolygonExample():
@@ -131,19 +135,32 @@ def irregularPolygonExample():
         print("Iteration", i)
 
     B.plot(color="black")
-    LineSet.union(allLines).plot()
+    LineSet.union(*allLines).plot()
     plt.show()
 
-def heptagonMethod1():
-    B = PolygonBillards.regularPolygon(singularityLen=5)
+def heptagonMethod1(iterations):
+    start = time.time()
+    B = PolygonBillards.regularPolygon(singularityLen=25)
    
     lines = B.singularity().simplify()
     points = lines.pointSpread(700)
+    prev = [points]
     
-    for i in range(100):
+    for i in range(iterations):
         points = B(points).simplify()
+        prev.append(points)
     
-    points.plot()
+    result = PointSet.union(*prev, simplfy=False)
+    
+    print("Time:", time.time() - start)
+    print("Memory:", sum(p.memory() for p in prev) / 1024**2)
+    print("Memory:", result.memory() / 1024**2)
+
+    result.plot()
+    B.plot(color="black")
+    plt.show()
+
+    plt.plot([len(p) for p in prev])
     plt.show()
 
 def lineSplitting():
@@ -161,19 +178,18 @@ def lineSplitting():
     line.plot(color="r", size=3)
     plt.show()
 
-
-def linesVsPoints():
+def linesVsPoints(iterations):
     B = PolygonBillards.regularPolygon()
    
     lines = B.singularity().simplify()
-    points = lines.pointSpread(1400)
+    points = lines.pointSpread(700)
     
     allPoints = []
     allLines = []
     pointMem = []
     lineMem = []
 
-    for i in range(100):
+    for i in range(iterations):
         points = B(points).simplify()
         lines = B(lines).simplify()
         allPoints.append(points)
@@ -181,8 +197,8 @@ def linesVsPoints():
         pointMem.append(len(points))
         lineMem.append(len(lines) * 2)
     
-    points = PointSet.union(allPoints)
-    lines = LineSet.union(allLines)
+    points = PointSet.union(*allPoints)
+    lines = LineSet.union(*allLines)
 
     plt.xlim(5.6, 6)
     plt.ylim(2.8, 3.2)    
@@ -198,6 +214,26 @@ def linesVsPoints():
     plt.plot(pointMem)
     plt.plot(lineMem)
     plt.show()
+    
+def redundantLines():
+    B = PolygonBillards.regularPolygon(nSides=5, singularityLen=4)
+   
+    plt.xlim(-0.2,2.3)
+    plt.ylim(0.2,2.27)
+    B.plot(color="black")
+    lines = B.singularity()
+    lines.plot(size=1, color="r")
+    plt.show()
+
+    for i in range(4):
+        lines = B(lines)
+
+        plt.xlim(-0.2,2.3)
+        plt.ylim(0.2,2.27)
+        B.plot(color="black")
+        B.singularity().plot(size=1, color="black")
+        lines.plot(color="r", size=2)
+        plt.show()
 
 if __name__ == "__main__":
     # ovalBillardAnim()
@@ -209,6 +245,8 @@ if __name__ == "__main__":
     # pentagonBackgroundExample(10)
     # pentagonBackgroundExample(100)
     # irregularPolygonExample()
-    # heptagonMethod1()
+    # heptagonMethod1(100)
+    # heptagonMethod1(200)
     # lineSplitting()
-    linesVsPoints()
+    linesVsPoints(200)
+    # redundantLines()
