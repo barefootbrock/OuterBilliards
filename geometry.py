@@ -7,12 +7,19 @@ import matplotlib.pyplot as plt
 from params import params
 
 class PointSet(np.ndarray):
-    @classmethod
-    def union(cls, pointSets, simplfy=True):
-        pts = np.concatenate(pointSets)
+    def union(*args, simplfy=True):
+        sets = []
+        for arg in args:
+            if not isinstance(arg, PointSet):
+                arg = PointSet(arg)
+            sets.append(arg)
+        
+        pts = np.concatenate(sets)
+
         if simplfy:
             pts = utils.removeDuplicatePts(pts)
-        return cls(pts)
+        
+        return PointSet(pts)
     
     def __new__(cls, points=None):
         if points is None:
@@ -29,8 +36,7 @@ class PointSet(np.ndarray):
     
     def __or__(self, other):
         """Union"""
-        pts = np.concatenate((self, other))
-        return type(self)(pts)
+        return self.union(other, simplfy=False)
     
     def __and__(self, other):
         """Intersection"""
@@ -48,19 +54,25 @@ class PointSet(np.ndarray):
     def transform(self, mat):
         """Apply matrix (2x2 or 3x3)"""
         mat = np.asarray(mat, params.dtype)
+
         if mat.shape == (2, 2):
             pts = (mat @ self.T).T
             return type(self)(pts)
+        
         elif mat.shape == (3, 3):
             #Apply matrix to homogenious coordinates
             pts = (mat[:2,:2] @ self.T).T + mat[:2,2]
             return type(self)(pts)
+        
         else:
             raise ValueError("Transformation must be a 2x2 or 3x3 matrix")
     
     def simplify(self):
         pts = utils.removeDuplicatePts(self)
         return type(self)(pts)
+    
+    def memory(self):
+        return self.nbytes
 
     def plot(self, *args, **kwargs):
         return utils.plotPoints(self, *args, **kwargs)
@@ -74,12 +86,18 @@ class LineSet(np.ndarray):
         lines = np.stack((P0, P1), axis=1)
         return cls(lines)
     
-    @classmethod
-    def union(cls, lineSets, simplfy=True):
-        lines = np.concatenate(lineSets)
+    def union(*args, simplfy=True):
+        sets = []
+        for arg in args:
+            if not isinstance(arg, LineSet):
+                arg = LineSet(arg)
+            sets.append(arg)
+
+        lines = np.concatenate(sets)
+
         if simplfy:
             lines = utils.mergeOverlapingSegments(lines)
-        return cls(lines)
+        return LineSet(lines)
     
     def __new__(cls, lines=None):
         if lines is None:
@@ -97,8 +115,7 @@ class LineSet(np.ndarray):
     
     def __or__(self, other):
         """Union"""
-        lines = np.concatenate((self, other))
-        return type(self)(lines)
+        return self.union(other, simplfy=False)
     
     def __and__(self, other):
         """Intersection"""
@@ -129,17 +146,20 @@ class LineSet(np.ndarray):
     def transform(self, mat):
         """Apply matrix (2x2 or 3x3)"""
         mat = np.asarray(mat, params.dtype)
+
         if mat.shape == (2, 2):
             res = self.copy()
             res[:,0,:] = (mat @ self[:,0,:].T).T
             res[:,1,:] = (mat @ self[:,1,:].T).T
             return res
+        
         elif mat.shape == (3, 3):
             #Apply matrix to homogenious coordinates
             res = self.copy()
             res[:,0,:] = (mat[:2,:2] @ self[:,0,:].T).T + mat[:2,2]
             res[:,1,:] = (mat[:2,:2] @ self[:,1,:].T).T + mat[:2,2]
             return res
+        
         else:
             raise ValueError("Transformation must be a 2x2 or 3x3 matrix")
     
@@ -154,13 +174,18 @@ class LineSet(np.ndarray):
         """Evenly distribute points along lines"""
         points = PointSet()
         totalLen = self.totalLen()
+        lenUsed = 0
+        ptsUsed = 0
 
         for P0, P1 in self:
-            relLen = linalg.norm(P1 - P0) / totalLen
-            t = np.linspace(0, 1, int(nPoints * relLen))
-            pts = t[:,np.newaxis] * (P1 - P0) + P0
+            lenUsed += linalg.norm(P1 - P0) / totalLen
+            count = round(nPoints * lenUsed) - ptsUsed
+            ptsUsed += count
+
+            t = np.linspace(0, 1, count)
+            newPts = t[:,np.newaxis] * (P1 - P0) + P0
             
-            points = points | pts
+            points = points | newPts
         
         return points
     
@@ -201,7 +226,7 @@ class Region:
             
             if include:
                 extend1 = i == 0 #Extend first line
-                extend2 = i + 2 == len(self.verts) #Extend first line
+                extend2 = i + 2 == len(self.verts) #Extend last line
                 res &= ((utils.sameSide(edge, points, self.interiorPoint) > 0)
                       | (utils.onLine(edge, points, extend1, extend2)))
             else:

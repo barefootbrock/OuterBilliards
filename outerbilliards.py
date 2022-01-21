@@ -169,5 +169,5 @@ if __name__ == "__main__":
     #     # lines.plot()
     #     # plt.show()
     # print(time.time() - t)
-    # LineSet.union(allLines).plot()
+    # LineSet.union(*allLines).plot()
     # plt.show()

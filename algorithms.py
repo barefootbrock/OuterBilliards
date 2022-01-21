@@ -29,7 +29,7 @@ def usingPoints(iterations, sides=7, singularityLen=25, seedPoints=1000,
             print("%i: %i points" % (i, len(points)))
 
     if keepPrev:
-        points = PointSet.union(allPoints)
+        points = PointSet.union(*allPoints)
     if verbose:
         print("Done (%i final points)" % len(points))
         print("Run time: %.2fs" % (time.time() - t0))
@@ -89,7 +89,7 @@ def usingLines(iterations, sides=7, singularityLen=25, keepPrev=True,
             print("%i: %i lines %.3f" % (i, len(lines), lines.totalLen()))
 
     if keepPrev:
-        lines = LineSet.union(allLines)
+        lines = LineSet.union(*allLines)
     
     if useSymmetry:
         M = [[cos(2*pi/sides), -sin(2*pi/sides)],
@@ -100,7 +100,7 @@ def usingLines(iterations, sides=7, singularityLen=25, keepPrev=True,
             lines = lines.transform(M)
             allLines.append(lines)
 
-        lines = LineSet.union(allLines)
+        lines = LineSet.union(*allLines)
 
     if verbose:
         print("Done (%i final line segments)" % len(lines))
@@ -110,7 +110,7 @@ def usingLines(iterations, sides=7, singularityLen=25, keepPrev=True,
 
 
 if __name__ == "__main__":
-    # usingPoints(300, seedPoints=7, singularityLen=5, keepPrev=False).plot(size=2)
-    usingLines(100, singularityLen=50000, keepPrev=False).plot()
+    usingPoints(200, seedPoints=1400, singularityLen=25).plot()
+    usingLines(200, singularityLen=25).plot()
     PolygonBillards.regularPolygon().plot()
     plt.show()

@@ -20,7 +20,7 @@ class PiecewiseIsometry:
             for mat, region in zip(self.mats, self.regions):
                 results.append(split.within(region, cut=False).transform(mat))
             
-            return LineSet.union(results, simplfy=False)
+            return LineSet.union(*results, simplfy=False)
                     
         for mat, region in zip(self.mats, self.regions):
             results.append(obj.within(region).transform(mat))
@@ -77,5 +77,5 @@ if __name__ == "__main__":
             print(i, len(lines))
         allLines.append(lines)
     
-    LineSet.union(allLines).plot()
+    LineSet.union(*allLines).plot()
     plt.show()
