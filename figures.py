@@ -178,27 +178,56 @@ def lineSplitting():
     line.plot(color="r", size=3)
     plt.show()
 
-def linesVsPoints(iterations):
-    B = PolygonBilliards.regularPolygon()
+def lineSegmentsDemo():
+    B = PolygonBilliards.regularPolygon(nSides=5, singularityLen=4)
    
     lines = B.singularity().simplify()
-    points = lines.pointSpread(700)
+
+    allLines = []
+
+    for i in range(10):
+        B.plot(color="black")
+        lines.union(*allLines).plot(size=1, pointSize=50, showPoints=True)
+        plt.show()
+
+        allLines.append(lines)
+        lines = B(lines).simplify()
+
+
+def linesVsPoints(iterations):
+    B = PolygonBilliards.regularPolygon(nSides=5)
+   
+    lines = B.singularity().simplify()
+    points = lines.pointSpread(500)
     
     allPoints = []
     allLines = []
-    pointMem = []
-    lineMem = []
 
+    print("Calculating points...")
+    start = time.time()
     for i in range(iterations):
-        points = B(points).simplify()
-        lines = B(lines).simplify()
         allPoints.append(points)
-        allLines.append(lines)
-        pointMem.append(len(points))
-        lineMem.append(len(lines) * 2)
+        points = B(points).simplify()
     
-    points = PointSet.union(*allPoints)
-    lines = LineSet.union(*allLines)
+    points = points.union(*allPoints, simplfy=False)
+    print("Points: %.3fs %.3fMB" % (
+        time.time() - start,
+        points.nbytes / 1024**2
+    ))
+    
+
+    print("Calculating lines...")
+    start = time.time()
+    for i in range(iterations):
+        allLines.append(lines)
+        lines = B(lines).simplify()
+    
+    lines = lines.union(*allLines, simplfy=False)
+    print("Lines: %.3fs %.3fMB" % (
+        time.time() - start,
+        lines.nbytes / 1024**2
+    ))
+
 
     plt.xlim(5.6, 6)
     plt.ylim(2.8, 3.2)    
@@ -207,12 +236,14 @@ def linesVsPoints(iterations):
 
     plt.xlim(5.6, 6)
     plt.ylim(2.8, 3.2)
-    points.plot(size=10)
     lines.plot(size=1)
     plt.show()
 
-    plt.plot(pointMem)
-    plt.plot(lineMem)
+    plt.plot([len(p) for p in allPoints], label="Points")
+    plt.plot([len(l) for l in allLines], label="Lines")
+    plt.xlabel("Iteration")
+    plt.ylabel("Number of Points/Lines")
+    plt.legend()
     plt.show()
     
 def redundantLines():
@@ -235,6 +266,57 @@ def redundantLines():
         lines.plot(color="r", size=2)
         plt.show()
 
+def method2vs3(iterations):
+    B = PolygonBilliards.regularPolygon(nSides=5)
+   
+    lines2 = B.singularity().simplify()
+    lines3 = B.singularity().simplify()
+    
+    allLines2 = []
+    allLines3 = []
+
+    print("Calculating method 2...")
+    start = time.time()
+    for i in range(iterations):
+        allLines2.append(lines2)
+        lines2 = B(lines2).simplify()
+    
+    lines2 = lines2.union(*allLines2, simplfy=False)
+    print("Method 2: %.3fs %.3fMB" % (
+        time.time() - start,
+        lines2.nbytes / 1024**2
+    ))
+    
+
+    print("Calculating method 3...")
+    start = time.time()
+    for i in range(iterations):
+        allLines3.append(lines3)
+        lines3 = B(lines3).simplify()
+
+        if i == 0:
+            B.setEdgeMethod(PolygonBilliards.REFLECT_NONE)
+    
+    lines3 = lines3.union(*allLines3, simplfy=False)
+    print("Method 3: %.3fs %.3fMB" % (
+        time.time() - start,
+        lines3.nbytes / 1024**2
+    ))
+
+
+    lines2.plot(size=1)
+    plt.show()
+
+    lines3.plot(size=1)
+    plt.show()
+
+    plt.plot([len(p) for p in allLines2], label="Method 2")
+    plt.plot([len(l) for l in allLines3], label="Method 3")
+    plt.xlabel("Iteration")
+    plt.ylabel("Number of Points/Lines")
+    plt.legend()
+    plt.show()
+
 if __name__ == "__main__":
     # ovalBillardAnim()
     # pentagonSinglePointAnim()
@@ -248,5 +330,7 @@ if __name__ == "__main__":
     # heptagonMethod1(100)
     # heptagonMethod1(200)
     # lineSplitting()
-    linesVsPoints(200)
+    # lineSegmentsDemo()
+    # linesVsPoints(500)
     # redundantLines()
+    method2vs3(200)

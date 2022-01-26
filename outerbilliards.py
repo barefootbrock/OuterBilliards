@@ -1,11 +1,16 @@
 import numpy as np
 from numpy import linalg
 from numpy import sin, cos, tan, pi, inf
-from scipy.optimize import minimize_scalar
 import utils
 from geometry import PointSet, Region
 from transformation import PiecewiseIsometry
 from params import params
+
+try:
+    from scipy.optimize import minimize_scalar
+except ImportError:
+    print("Scipy not found, SmoothBilliards will not work")
+
 
 class PolygonBilliards(PiecewiseIsometry):
     REFLECT_BOTH = 'both'
