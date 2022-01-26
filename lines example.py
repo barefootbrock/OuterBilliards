@@ -2,12 +2,18 @@ from outerbilliards import PolygonBilliards
 from geometry import LineSet
 import utils
 
-#Settings
-nSides = 5 #Number of sides
-iterations = 100 #Number of iterations
+#Settings ----------------
+nSides = 7
+iterations = 100
 length = 25 #Initial length of line segments
-edgeMethod = PolygonBilliards.REFLECT_NONE #What to do with points/line segments that land on singularity
-useSymmetry = True #Use symmetry to speed up calculation
+#What to do with points/line segments that land on singularity. Options are:
+#  PolygonBilliards.REFLECT_NONE
+#  PolygonBilliards.REFLECT_FAR
+#  PolygonBilliards.REFLECT_BOTH
+edgeMethod = PolygonBilliards.REFLECT_FAR 
+useSymmetry = True #True or False
+#End of settings ---------
+
 
 
 #Create regular polygon outer billiard object

@@ -6,7 +6,7 @@ from algorithms import usingLines
 B = PolygonBilliards.regularPolygon(nSides=7)
 
 lines = usingLines(
-    1000,
+    100,
     sides=7,
     splitMode='remove',
     useSymmetry=True
