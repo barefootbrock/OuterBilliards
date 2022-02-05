@@ -5,13 +5,13 @@ import time
 
 #Different algorithms for generating singularity structure
 
-def usingPoints(iterations, sides=7, singularityLen=25, seedPoints=1000,
+def usingPoints(billiard, iterations, seedPoints=1000,
                 keepPrev=True, simplify=True, verbose=True):
-    isometry = PolygonBilliards.regularPolygon(
-        nSides=sides,
-        singularityLen=singularityLen
-    )
-    singularity = isometry.singularity().simplify()
+    if verbose:
+        print("Running points with %i iterations, seedPoints=%i, keepPrev=%i, simplify=%i" %(
+        iterations, seedPoints, keepPrev, simplify))
+    
+    singularity = billiard.singularity().simplify()
     points = singularity.pointSpread(seedPoints)
 
     if keepPrev:
@@ -20,49 +20,47 @@ def usingPoints(iterations, sides=7, singularityLen=25, seedPoints=1000,
     t0 = time.time()
 
     for i in range(iterations):
-        points = isometry(points)
+        points = billiard(points)
+
         if simplify:
             points = points.simplify()
         if keepPrev:
             allPoints.append(points)
-        if verbose:
-            print("%i: %i points" % (i, len(points)))
+        
+        if verbose and i * 10 // iterations != (i + 1) * 10 // iterations:
+            print("%i: %i points" % (i + 1, len(points)))
 
     if keepPrev:
-        points = PointSet.union(*allPoints)
+        points = PointSet.union(*allPoints, simplfy=False)
+    
+    finalMemory = points.memory()
+    points = points.simplify()
+
     if verbose:
         print("Done (%i final points)" % len(points))
-        print("Run time: %.2fs" % (time.time() - t0))
+        print("Run time: %.3gs" % (time.time() - t0))
+        print("Memory of final (unsimplified) result: %.3gMB" % (finalMemory / 1024**2))
+    
     return points
 
 
-def usingLines(iterations, sides=7, singularityLen=25, keepPrev=True,
-               simplify=True, splitMode='split', useSymmetry=False, verbose=True):
+def usingLines(billiard, iterations, keepPrev=True, simplify=True,
+               edgeMethod='both', useSymmetry=False, verbose=True):
     """
     singularityLen: length of singularity to use
     keepPrev: keep all iterations
     simplify: remove overlapping lines every iteration
     splitMode:
-        'split' = split lines landing on singulatity
+        'both' = split lines landing on singulatity
         'farthest' = Only use farthest vertex
-        'remove' = Remove line segments landing on singularity after 1st iteration
+        'neither' = Remove line segments landing on singularity after 1st iteration
     useSummetry: Use rotational symmetry to speed up
     """
-
-    if splitMode == 'split':
-        isometry = PolygonBilliards.regularPolygon(
-            nSides=sides,
-            singularityLen=singularityLen)
-    elif splitMode in ('farthest', 'remove'):
-        isometry = PolygonBilliards.regularPolygon(
-            nSides=sides,
-            singularityLen=singularityLen,
-            edgeMethod="farthest"
-        )
-    else:
-        raise ValueError("Invalid split mode")
+    if verbose:
+        print("Running Lines with %i iterations, keepPrev=%i, simplify=%i, edgeMethod=%s, useSymmetry=%i" %(
+        iterations, keepPrev, simplify, edgeMethod, useSymmetry))
     
-    lines = isometry.singularity().simplify()
+    lines = billiard.singularity().simplify()
 
     if useSymmetry:
         lines = lines[0:1,:,:]
@@ -73,38 +71,35 @@ def usingLines(iterations, sides=7, singularityLen=25, keepPrev=True,
     t0 = time.time()
 
     for i in range(iterations):
-        if splitMode == 'remove' and i == 1:
-            #after first iteration ignore points on singularities
-            for r in isometry.regions:
-                r.includeEdges[:] = False
-            simplify = False
+        if i == 1:
+            billiard.setEdgeMethod(edgeMethod)
         
-        lines = isometry(lines)
+        lines = billiard(lines)
 
         if simplify:
             lines = lines.simplify()
         if keepPrev:
             allLines.append(lines)
-        if verbose:
-            print("%i: %i lines %.3f" % (i, len(lines), lines.totalLen()))
+
+        if verbose and i * 10 // iterations != (i + 1) * 10 // iterations:
+            print("%i: %i lines" % (i + 1, len(lines)))
 
     if keepPrev:
-        lines = LineSet.union(*allLines)
+        lines = LineSet.union(*allLines, simplfy=False)
+    
+    finalMemory = lines.memory()
+    if keepPrev:
+        lines = lines.simplify()
     
     if useSymmetry:
-        M = [[cos(2*pi/sides), -sin(2*pi/sides)],
-             [sin(2*pi/sides),  cos(2*pi/sides)]]
-        
-        allLines = [lines]
-        for i in range(sides - 1):
-            lines = lines.transform(M)
-            allLines.append(lines)
+        utils.applySymmetry(lines, rotational=len(billiard.verts))
 
         lines = LineSet.union(*allLines)
 
     if verbose:
         print("Done (%i final line segments)" % len(lines))
-        print("Run time: %.2fs" % (time.time() - t0))
+        print("Run time: %.3gs" % (time.time() - t0))
+        print("Memory of final (unsimplified) result: %.3gMB" % (finalMemory / 1024**2))
     
     return lines
 

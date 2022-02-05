@@ -189,6 +189,9 @@ class LineSet(np.ndarray):
         
         return points
     
+    def memory(self):
+        return self.nbytes
+    
     def plot(self, *args, **kwargs):
         return utils.plotLines(self, *args, **kwargs)
 
