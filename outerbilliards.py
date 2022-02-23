@@ -72,25 +72,25 @@ class PolygonBilliards(PiecewiseIsometry):
 
 
 class SmoothBilliards:
-    def __init__(self, r, v=None, a=None):
+    def __init__(self, r):
         """
-        Smooth paramitized curve(<f(t), g(t)>),
-         it's derivative (<f'(t), g'(t)>),
-         and second derivative
+        Smooth paramitized curve(<f(t), g(t)>)
         """
         def toNpVec(arr):
             arr = np.asarray(arr, dtype=params.dtype)
             return arr.reshape((2, -1)).T
         
         self.r = lambda t: toNpVec(r(t))
-        self.v = lambda t: toNpVec(v(t))
-        self.a = lambda t: toNpVec(a(t))
 
         self.center = np.mean(self.r(np.linspace(0, 1)), 0)
     
     def __call__(self, points):
         vert = self.tangentPoint(points)
-        return PointSet(2 * vert - points)
+        newPoints = PointSet(2 * vert - points)
+        P1, P2, P3 = points, vert, newPoints
+        # print(P1, P2, P3)
+        # print(linalg.norm(P1 - P2), linalg.norm(P3 - P2))
+        return newPoints
     
     def tangentPoint(self, P):
         """
@@ -100,46 +100,20 @@ class SmoothBilliards:
             x = x - f(x)/f'(x)
             t = t - ((r(t) - point) X v(t)) ./ ((r(t) - point) X a(t))
         """
-        r, v, a = self.r, self.v, self.a
 
         def err(t, point):
             #Error function to minimize
             return np.cross(
                 self.center - point,
-                utils.normalize(self.r(t) - P)[0,:]
+                utils.normalize(self.r(t) - P)
             )
         
         tVals = []
         for point in PointSet(P):
-            t = minimize_scalar(err, args=(point,)).x % 1
+            t = minimize_scalar(err, args=(point,), tol=1e-12).x % 1
             tVals.append(t)
         
         t = np.asarray(tVals, dtype=params.dtype)
-
-        # step = 0.5
-        # t = 0
-
-        # for i in range(8):
-        #     t += step * np.sign(np.cross(v(t), r(t) - P, axis=1))
-        #     t %= 1
-        #     step *= 2 / 3
-        #     # print(t)
-        
-        # lastT = 0
-
-        # for i in range(5):
-        #     #Modification on Newton's method
-        #     # -abs of slope is used so zeros with posative slope are repelled
-        #     # and only zeros with negative slope are found
-        #     lastT = t
-        #     slope = -np.abs(np.cross(a(t), r(t) - P, axis=1))
-        #     t = t - np.cross(v(t), r(t) - P, axis=1) / slope
-        #     t %= 1
-        #     # print(t)
-        
-        # assert np.sum(v(t) * (r(t) - P), axis=1) > 0, "Wrong point found"
-        # assert np.max(np.abs(t - lastT)) < utils.eps, "Point did not converge"
-        # assert np.cross(v(t), r(t) - P, axis=1) < utils.eps, "Bad point found"
 
         return self.r(t)
 
@@ -154,25 +128,32 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import time
 
-    B = SmoothBilliards(
-        lambda t: [cos(2*pi*t), 2*sin(2*pi*t)],
-        lambda t: [-2*pi*sin(2*pi*t), 4*pi*cos(2*pi*t)],
-        lambda t: [-4*pi*pi*cos(2*pi*t), -8*pi*pi*sin(2*pi*t)]
-    )
+    B = SmoothBilliards(lambda t: [
+        4 * cos(2*pi*t),
+        7**0.5 * sin(2*pi*t)
+    ])
 
-    point = [3, 0]
+    point = [4, -2.4]
     pts = [point]
     fig = plt.figure()
+    plt.xlim(-6, 6)
+    plt.ylim(-5, 5)
+    B.plot(showEdges=True, color="black")
+    plt.pause(5)
 
-    for i in range(50):
-        point = B(point)
-        pts.append(point[0,:])
-
+    for i in range(10):
         fig.clear()
+        plt.xlim(-6, 6)
+        plt.ylim(-5, 5)
         B.plot(showEdges=True, color="black")
+        PointSet(pts).plot(size=25)
         lines = LineSet.connect(pts)
-        lines.plot(showPoints=True, pointSize=15)
-        plt.pause(0.1)
+        lines.plot(size=1)
+        plt.pause(1)
+        
+        point = B(point)
+        print(point)
+        pts.append(point[0,:])
 
     plt.show()
 
