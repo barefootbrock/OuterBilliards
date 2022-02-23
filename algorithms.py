@@ -6,7 +6,7 @@ import time
 #Different algorithms for generating singularity structure
 
 def usingPoints(billiard, iterations, seedPoints=1000,
-                keepPrev=True, simplify=True, verbose=True):
+                keepPrev=True, simplify=True, verbose=True, trackMemory=False):
     if verbose:
         print("Running points with %i iterations, seedPoints=%i, keepPrev=%i, simplify=%i" %(
         iterations, seedPoints, keepPrev, simplify))
@@ -31,6 +31,8 @@ def usingPoints(billiard, iterations, seedPoints=1000,
             print("%i: %i points" % (i + 1, len(points)))
 
     if keepPrev:
+        if trackMemory:
+            pointCounts = [len(p) for p in allPoints]
         points = PointSet.union(*allPoints, simplfy=False)
     
     finalMemory = points.memory()
@@ -40,12 +42,14 @@ def usingPoints(billiard, iterations, seedPoints=1000,
         print("Done (%i final points)" % len(points))
         print("Run time: %.3gs" % (time.time() - t0))
         print("Memory of final (unsimplified) result: %.3gMB" % (finalMemory / 1024**2))
-    
+
+    if keepPrev and trackMemory:
+        return points, pointCounts
     return points
 
 
 def usingLines(billiard, iterations, keepPrev=True, simplify=True,
-               edgeMethod='both', useSymmetry=False, verbose=True):
+               edgeMethod='both', useSymmetry=False, verbose=True, trackMemory=False):
     """
     singularityLen: length of singularity to use
     keepPrev: keep all iterations
@@ -85,6 +89,8 @@ def usingLines(billiard, iterations, keepPrev=True, simplify=True,
             print("%i: %i lines" % (i + 1, len(lines)))
 
     if keepPrev:
+        if trackMemory:
+            lineCounts = [len(l) for l in allLines]
         lines = LineSet.union(*allLines, simplfy=False)
     
     finalMemory = lines.memory()
@@ -92,20 +98,24 @@ def usingLines(billiard, iterations, keepPrev=True, simplify=True,
         lines = lines.simplify()
     
     if useSymmetry:
-        utils.applySymmetry(lines, rotational=len(billiard.verts))
-
-        lines = LineSet.union(*allLines)
+        lines = utils.applySymmetry(lines, rotational=len(billiard.verts))
+        if finalMemory < lines.memory():
+            print("Memory of simplified result > memory of single piece.")
+            finalMemory = lines.memory()
 
     if verbose:
         print("Done (%i final line segments)" % len(lines))
         print("Run time: %.3gs" % (time.time() - t0))
         print("Memory of final (unsimplified) result: %.3gMB" % (finalMemory / 1024**2))
     
+    if keepPrev and trackMemory:
+        return lines, lineCounts
     return lines
 
 
 if __name__ == "__main__":
-    usingPoints(200, seedPoints=1400, singularityLen=25).plot()
-    usingLines(200, singularityLen=25).plot()
-    PolygonBilliards.regularPolygon().plot()
+    B = PolygonBilliards.regularPolygon()
+    usingPoints(B, 100, seedPoints=1400).plot()
+    usingLines(B, 100).plot()
+    B.plot()
     plt.show()

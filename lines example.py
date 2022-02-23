@@ -1,3 +1,5 @@
+#demo.py does the same thing, but is shorter
+
 from outerbilliards import PolygonBilliards
 from geometry import LineSet
 import utils

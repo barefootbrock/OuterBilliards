@@ -300,6 +300,9 @@ def matrixAboutPoint(M2x2, center):
 
 def normalize(vecs):
     """Scale vecs to have length of 1"""
+    if len(vecs.shape) == 1:
+        return vecs / linalg.norm(vecs)
+    
     return vecs / linalg.norm(vecs, axis=1)[:,np.newaxis]
 
 def applySymmetry(obj, rotational=None):
