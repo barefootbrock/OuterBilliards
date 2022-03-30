@@ -3,6 +3,8 @@ from geometry import *
 import matplotlib.pyplot as plt
 from algorithms import usingLines, usingPoints
 
+input("Press enter to start: ")
+
 B = PolygonBilliards.regularPolygon(
     nSides=7,
     singularityLen=25
@@ -10,7 +12,7 @@ B = PolygonBilliards.regularPolygon(
 
 result, counts = usingLines(
     B,
-    iterations=500,
+    iterations=1000,
     edgeMethod=PolygonBilliards.REFLECT_NONE, #Can be REFLECT_BOTH, REFLECT_FAR, REFLECT_NONE
     useSymmetry=True,
     trackMemory=True
@@ -29,5 +31,5 @@ result.plot()
 B.plot(color="black")
 plt.show()
 
-plt.plot(counts)
-plt.show()
+# plt.plot(counts)
+# plt.show()

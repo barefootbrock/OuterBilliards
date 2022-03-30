@@ -1,3 +1,4 @@
+from copy import deepcopy
 from outerbilliards import *
 from geometry import *
 import matplotlib.pyplot as plt
@@ -60,6 +61,8 @@ def usingLines(billiard, iterations, keepPrev=True, simplify=True,
         'neither' = Remove line segments landing on singularity after 1st iteration
     useSummetry: Use rotational symmetry to speed up
     """
+    billiard = deepcopy(billiard) #So changes will not affect original billiard
+
     if verbose:
         print("Running Lines with %i iterations, keepPrev=%i, simplify=%i, edgeMethod=%s, useSymmetry=%i" %(
         iterations, keepPrev, simplify, edgeMethod, useSymmetry))

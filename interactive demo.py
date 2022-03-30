@@ -1,3 +1,5 @@
+#This is something I was working on that has not panned out yet
+
 import tkinter as tk
 from tkinter.constants import NO
 from matplotlib.figure import Figure

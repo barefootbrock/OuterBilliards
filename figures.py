@@ -176,7 +176,7 @@ def lineSplitting():
     plt.show()
 
     B.plot(color="black")
-    B.singularity().plot(size=1)
+    B(B.singularity()).plot(size=1)
     line1 = B(line1)
     line2 = B(line2)
 
@@ -326,10 +326,10 @@ if __name__ == "__main__":
     # irregularPolygonExample()
     # method1(100, 7)
     # method1(200, 7)
-    # lineSplitting()
+    lineSplitting()
     # lineSegmentsDemo()
     # linesVsPoints(100, 7)
     # redundantLines()
-    results(100, 5)
+    # results(100, 5)
     # results(400)
     # results(1000)
