@@ -1,5 +1,5 @@
 # OuterBilliards
-This code is associated with the presentation *Outer Billiard Visualization Algorithms*, which I (David Brock) am working on with Byungik Kahng from the University of North Texas at Dallas (UNTD). Its main purpose is to generate and display the singularity structure of outer/dual billiards on polygons, especially regular polygons. 
+This code is associated with the presentation *Outer Billiard Visualization Algorithms*, which I (David Brock) am working on with Dr. Byungik Kahng from the University of North Texas at Dallas (UNTD). Its main purpose is to generate and display the singularity structure of outer/dual billiards on polygons, especially regular polygons. 
 
 Below is our abstract:
 
